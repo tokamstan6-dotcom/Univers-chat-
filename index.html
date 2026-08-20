@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Univers Chat</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+body {
+  background: #0f0f1a;
+  color: white;
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+.screen {
+  height: 100vh;
+  width: 100vw;
+  display: none;
+  flex-direction: column;
+}
+.screen.active { display: flex; }
+.center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+}
+
+/* SPLASH */
+.splash {
+  background: linear-gradient(135deg, #25D366 0%, #4F46E5 50%, #8B5CF6 100%);
+  background-size: 300% 300%;
+  animation: gradientMove 3s ease infinite;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+@keyframes gradientMove {
+ 0% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+ 100% { background-position: 0% 50%; }
+}
+.splash h1 {
+  font-size: 36px;
+  color: white;
+  text-shadow: 0 0 25px rgba(139,92,246,0.8);
+  animation: fadeIn 1.5s ease-in;
+  font-weight: 800;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+h1 { font-size: 32px; color: #8B5CF6; }
+button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+input, textarea {
+  width: 80%;
+  max-width: 300px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #2d2d4a;
+  background: #1a1a2e;
+  color: white;
+  font-size: 15px;
+  outline: none;
+  transition: 0.3s;
+}
+input:focus, textarea:focus { border-color: #8B5CF6; }
+
+/* ===== BARRE DU HAUT STYLE TELEGRAM ===== */
+.top-nav {
+  height: 56px;
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #2d2d4a;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.top-nav .app-name {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.top-nav .nav-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.top-nav .nav-actions button {
+  background: none;
+  border: none;
+  color: #a0a0c0;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  transition: 0.2s;
+}
+.top-nav .nav-actions button:hover {
+  color: #8B5CF6;
+}
+.top-nav .nav-actions button.active {
+  color: #8B5CF6;
+}
+
+/* Style pour les onglets en bas (inspiré Telegram) */
+.tab-bar {
+  display: flex;
+  background: #1a1a2e;
+  border-top: 1px solid #2d2d4a;
+  height: 56px;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+}
+.tab-bar .tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0a0c0;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  gap: 6px;
+  border: none;
+  background: none;
+  position: relative;
+}
+.tab-bar .tab-btn .tab-icon {
+  font-size: 22px;
+}
+.tab-bar .tab-btn .tab-label {
+  font-size: 11px;
+}
+.tab-bar .tab-btn.active {
+  color: #8B5CF6;
+}
+.tab-bar .tab-btn.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 30%;
+  right: 30%;
+  height: 2px;
+  background: #8B5CF6;
+  border-radius: 0 0 2px 2px;
+}
+.tab-bar .tab-btn .badge {
+  background: #ff3b30;
+  color: white;
+  font-size: 10px;
+  border-radius: 50%;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+  position: absolute;
+  top: 4px;
+  right: 20%;
+}
+
+.header {
+  height: 56px;
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #2d2d4a;
+  transition: 0.3s;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-right{display:flex;gap:12px}
+.iconBtn{background:none;border:none;color:white;font-size:22px;cursor:pointer}
+.profile-round {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.search-bar{
+  padding: 10px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #2d2d4a;
+}
+.search-bar input{
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: #2d2d4a;
+  border: none;
+}
+
+.contacts {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  background: #0f0f1a;
+  padding-bottom: 20px;
+}
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #1a1a2e;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.contact:hover { background: #1a1a2e; }
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  position: relative;
+}
+.status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #555;
+  border: 2px solid #1a1a2e;
+}
+.status-dot.online { background: #25D366; }
+
+.fab {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 20px rgba(139,92,246,0.5);
+  cursor: pointer;
+  z-index: 5;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1a1a2e;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+  transition: 0.3s;
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  z-index: 9;
+}
+.overlay.active { display: block; }
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #0f0f1a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: 0.3s;
+}
+.msg { display: flex; }
+.msg.me { justify-content: flex-end; }
+.bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+  font-size: 15px;
+  line-height: 20px;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.msg.me .bubble {
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.msg.them .bubble {
+  background: #2d2d4a;
+  color: #fff;
+  border-bottom-left-radius: 4px;
+  border: 1px solid rgba(139,92,246,0.3);
+}
+.msg img,.msg video{border-radius:12px;margin-top:6px;display:block;max-width:220px}
+.msg audio {
+  max-width: 220px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+.time {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  float: right;
+}
+.typing {
+  font-size: 12px;
+  color: #8B5CF6;
+  font-style: italic;
+}
+
+/* ===== INPUT BAR STYLE TELEGRAM ===== */
+.inputBar {
+  display: flex;
+  padding: 6px 12px;
+  background: #1a1a2e;
+  gap: 6px;
+  align-items: center;
+  position: sticky;
+  bottom: 0;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  transition: transform 0.2s ease;
+  border-top: 1px solid #2d2d4a;
+}
+.inputWrapper {
+  flex: 1;
+  background: #2d2d4a;
+  border-radius: 25px;
+  padding: 4px 12px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.inputWrapper button {
+  background: none;
+  border: none;
+  color: #a0a0c0;
+  font-size: 22px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+.inputWrapper button:hover { color: #8B5CF6; }
+.inputWrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  font-size: 15px;
+  outline: none;
+  color: white;
+}
+.sendBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.sendBtn:hover { transform: scale(1.05); }
+.audioBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #2d2d4a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.audioBtn:hover { background: #3d3d5a; }
+.audioBtn.recording {
+  background: #ff3b30;
+  animation: pulse 0.8s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.audioBtn .stop-icon { display: none; }
+.audioBtn.recording .mic-icon { display: none; }
+.audioBtn.recording .stop-icon { display: inline; }
+
+.recording-timer {
+  font-size: 14px;
+  color: #ff3b30;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 22px;
+  padding: 0;
+  cursor: pointer;
+}
+.link {
+  color: #8B5CF6;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 10px;
+}
+.error {
+  color: #ff6b6b;
+  font-size: 14px;
+  margin-top: -10px;
+}
+.settings-item {
+  padding: 16px;
+  border-bottom: 1px solid #1a1a2e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: 0.2s;
+}
+.settings-item:hover { background: #1a1a2e; }
+.settings-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.blocked-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #1a1a2e}
+.blocked-item button{background:#ff3b30;font-size:13px;padding:6px 12px}
+
+/* ================================
+   UNIVERS+ STYLE
+   ================================ */
+#universplusTab {
+  background: #0f0f1a;
+  flex: 1;
+}
+
+.universplus-hero {
+  background: linear-gradient(135deg, #1a1a3e 0%, #2d1b4e 100%);
+  margin: 16px 16px 0 16px;
+  border-radius: 24px;
+  padding: 40px 20px 50px 20px;
+  text-align: center;
+  border: 1px solid rgba(139,92,246,0.3);
+  box-shadow: 0 8px 40px rgba(139,92,246,0.15);
+  position: relative;
+  overflow: hidden;
+  transition: 0.3s;
+}
+.universplus-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 40%, rgba(139,92,246,0.1), transparent 60%);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.universplus-hero .hero-icon {
+  font-size: 72px;
+  display: block;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+.universplus-hero .hero-title {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #25D366, #8B5CF6, #4F46E5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 1;
+}
+.universplus-hero .hero-sub {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+.universplus-hero .hero-phone-btn {
+  margin-top: 24px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  border: none;
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(37,211,102,0.4);
+  transition: 0.3s;
+  position: relative;
+  z-index: 1;
+}
+.universplus-hero .hero-phone-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 40px rgba(37,211,102,0.6);
+}
+.universplus-hero .hero-phone-btn:active {
+  transform: scale(0.95);
+}
+
+.universplus-contacts {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: none;
+  animation: slideUp 0.3s ease;
+}
+.universplus-contacts.visible {
+  display: block;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.universplus-contacts .contact-list-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.universplus-contacts .close-contacts {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.universplus-contacts .contact-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #1a1a2e;
+  border-radius: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  border: 1px solid transparent;
+}
+.universplus-contacts .contact-item:hover {
+  background: #2d2d4a;
+  border-color: #8B5CF6;
+  transform: translateX(4px);
+}
+.universplus-contacts .contact-item .contact-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.universplus-contacts .contact-item .contact-info {
+  flex: 1;
+}
+.universplus-contacts .contact-item .contact-info .name {
+  font-weight: 600;
+  font-size: 16px;
+}
+.universplus-contacts .contact-item .contact-info .status {
+  font-size: 13px;
+  opacity: 0.6;
+}
+.universplus-contacts .contact-item .call-btn-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #25D366;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: 0.3s;
+  flex-shrink: 0;
+}
+.universplus-contacts .contact-item .call-btn-small:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+}
+.no-contacts {
+  text-align: center;
+  opacity: 0.6;
+  padding: 40px 20px;
+}
+
+/* ===== STYLE TELEGRAM POUR LE CHAT ===== */
+.chat-header {
+  background: #1a1a2e;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #2d2d4a;
+  min-height: 56px;
+}
+.chat-header .back-btn {
+  background: none;
+  border: none;
+  color: #a0a0c0;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+}
+.chat-header .chat-info {
+  flex: 1;
+}
+.chat-header .chat-info .name {
+  font-size: 17px;
+  font-weight: 600;
+}
+.chat-header .chat-info .status {
+  font-size: 13px;
+  opacity: 0.6;
+}
+.chat-header .chat-actions {
+  display: flex;
+  gap: 12px;
+}
+.chat-header .chat-actions button {
+  background: none;
+  border: none;
+  color: #a0a0c0;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+}
+.chat-header .chat-actions button:hover { color: #8B5CF6; }
+
+/* Theme clair */
+body.light {
+  background: #f0f2f5;
+  color: #000;
+}
+body.light .screen,
+body.light .header,
+body.light .inputBar,
+body.light .modal,
+body.light .top-nav,
+body.light .search-bar,
+body.light .tab-bar,
+body.light .chat-header {
+  background: #fff;
+  color: #000;
+  border-color: #ddd;
+}
+body.light .contact:hover,
+body.light .settings-item:hover,
+body.light .universplus-contacts .contact-item:hover {
+  background: #f0f2f5;
+}
+body.light .msg.them .bubble {
+  background: #e4e6eb;
+  color: #000;
+  border: 1px solid #ddd;
+}
+body.light .messages { background: #f0f2f5; }
+body.light input, body.light textarea {
+  background: #f0f2f5;
+  color: #000;
+  border-color: #ddd;
+}
+body.light .backBtn { color: #000; }
+body.light .inputWrapper { background: #e4e6eb; }
+body.light .inputWrapper input { color: #000; }
+body.light .search-bar input{background:#e4e6eb}
+body.light .audioBtn { background: #ddd; color: #000; }
+body.light .universplus-hero {
+  background: linear-gradient(135deg, #e8e0f0 0%, #d4c8e8 100%);
+  border-color: rgba(139,92,246,0.2);
+}
+body.light .universplus-contacts .contact-item {
+  background: #fff;
+  border-color: #eee;
+}
+body.light .universplus-contacts .contact-item:hover {
+  background: #f5f0ff;
+  border-color: #8B5CF6;
+}
+body.light .call-screen { background: #f0f2f5; }
+body.light #universplusTab { background: #f0f2f5; }
+body.light .top-nav .nav-actions button { color: #555; }
+body.light .top-nav .nav-actions button:hover { color: #8B5CF6; }
+body.light .chat-header .chat-actions button { color: #555; }
+body.light .chat-header .chat-actions button:hover { color: #8B5CF6; }
+
+/* CALL SCREEN */
+.call-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0f0f1a;
+  z-index: 999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+.call-screen.active { display: flex; }
+.call-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: bold;
+}
+.call-name {
+  font-size: 28px;
+  font-weight: bold;
+}
+.call-status {
+  font-size: 16px;
+  opacity: 0.7;
+}
+.call-controls {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+.call-btn-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.call-btn-circle:hover { transform: scale(1.1); }
+.call-btn-circle.end {
+  background: #ff3b30;
+  color: white;
+}
+.call-btn-circle.mute {
+  background: #2d2d4a;
+  color: white;
+}
+.call-btn-circle.mute.muted {
+  background: #ff3b30;
+  color: white;
+}
+.call-btn-circle.speaker {
+  background: #2d2d4a;
+  color: white;
+}
+.call-btn-circle.speaker.on {
+  background: #8B5CF6;
+  color: white;
+}
+.audio-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #2d2d4a;
+}
+.audio-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.audio-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #8B5CF6;
+  cursor: pointer;
+}
+
+/* CAMERA MODAL */
+.camera-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.camera-modal.active { display: flex; }
+.camera-modal video {
+  width: 100%;
+  max-height: 80vh;
+  background: #000;
+}
+.camera-modal .camera-controls {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+  padding-bottom: 30px;
+}
+.camera-modal .camera-controls button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.camera-modal .camera-controls .capture-btn {
+  background: #25D366;
+  color: white;
+}
+.camera-modal .camera-controls .capture-btn:hover { transform: scale(1.1); }
+.camera-modal .camera-controls .close-camera-btn {
+  background: #ff3b30;
+  color: white;
+}
+.camera-modal .camera-controls .close-camera-btn:hover { transform: scale(1.1); }
+.camera-modal .camera-controls .switch-btn {
+  background: #2d2d4a;
+  color: white;
+}
+.camera-modal .camera-controls .switch-btn:hover { transform: scale(1.1); }
+</style>
+</head>
+<body>
+
+<!-- BALISES AUDIO -->
+<audio id="notificationSound" preload="auto">
+  <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+</audio>
+<audio id="sendSound" preload="auto">
+  <source src="https://www.soundjay.com/button/button-09.mp3" type="audio/mpeg">
+</audio>
+<audio id="ringtone" preload="auto" loop>
+  <source src="https://www.soundjay.com/phone/phone-ringing-01.mp3" type="audio/mpeg">
+</audio>
+
+<div id="splash" class="screen splash">
+  <h1>Univers Chat</h1>
+</div>
+
+<div id="welcome" class="screen center">
+  <h1>Univers Chat</h1>
+  <p>Discute avec tes amis simplement</p>
+  <button onclick="showScreen('auth')">Commencer</button>
+</div>
+
+<div id="auth" class="screen center">
+  <h2 id="authTitle">Connexion</h2>
+  <input id="pseudo" placeholder="Pseudo" style="display:none;">
+  <input id="phone" placeholder="Numéro sans espace" type="tel">
+  <input id="password" type="password" placeholder="Mot de passe 6 caractères min">
+  <div id="errorMsg" class="error"></div>
+  <button onclick="handleAuth()">Se connecter</button>
+  <div class="link" onclick="toggleAuth()">Créer un compte</div>
+</div>
+
+<!-- ECRAN PRINCIPAL -->
+<div id="mainScreen" class="screen">
+  <!-- BARRE DU HAUT STYLE TELEGRAM -->
+  <div class="top-nav">
+    <span class="app-name">Univers Chat</span>
+    <div class="nav-actions">
+      <button onclick="switchTab('chats')" id="navChats" class="active" title="Chats">💬</button>
+      <button onclick="switchTab('universplus')" id="navUniversPlus" title="Univers+">🚀</button>
+      <button onclick="switchTab('settings')" id="navSettings" title="Paramètres">⚙️</button>
+    </div>
+  </div>
+
+  <!-- ONGLET CHATS -->
+  <div id="chatsTab" style="flex:1; display:flex; flex-direction:column;">
+    <div class="search-bar">
+      <input id="searchInput" placeholder="🔍 Rechercher..." oninput="searchContacts()">
+    </div>
+    <div id="contacts" class="contacts"></div>
+    <div class="fab" onclick="openModal()">+</div>
+  </div>
+
+  <!-- ONGLET UNIVERS+ -->
+  <div id="universplusTab" style="display:none; flex-direction:column; height:100%;">
+    <div class="universplus-hero">
+      <span class="hero-icon">📞</span>
+      <div class="hero-title">Univers+</div>
+      <div class="hero-sub">Appelle tes amis en un clic</div>
+      <button class="hero-phone-btn" id="heroPhoneBtn" onclick="window.toggleContactList()">📞</button>
+    </div>
+    <div id="universplusContacts" class="universplus-contacts" style="flex:1; overflow-y:auto; padding:16px;">
+      <div class="contact-list-title">
+        <span>👥 Mes contacts</span>
+        <button class="close-contacts" onclick="window.toggleContactList()">✕</button>
+      </div>
+      <div id="universplusContactList" style="padding-bottom:20px;"></div>
+    </div>
+  </div>
+
+  <!-- ONGLET PARAMETRES -->
+  <div id="settingsTab" style="display:none; flex:1; flex-direction:column;">
+    <div class="contacts">
+      <div class="settings-item" onclick="showScreen('profile')">
+        <div class="settings-icon">👤</div>
+        <div style="flex:1;"><div style="font-size:15px;">Profil</div><div style="font-size:13px; opacity:0.7;">Modifier ton pseudo</div></div>
+      </div>
+      <div class="settings-item" onclick="toggleTheme()">
+        <div class="settings-icon" id="themeIcon">🌙</div>
+        <div style="flex:1;"><div style="font-size:15px;">Thème</div><div style="font-size:13px; opacity:0.7;" id="themeText">Sombre</div></div>
+        <div style="width:50px; height:28px; background:#2d2d4a; border-radius:14px; position:relative; cursor:pointer;">
+          <div id="themeToggle" style="width:24px; height:24px; background:#8B5CF6; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
+        </div>
+      </div>
+      <div class="settings-item" onclick="toggleAudio()">
+        <div class="settings-icon" id="audioIcon">🔊</div>
+        <div style="flex:1;"><div style="font-size:15px;">Sons</div><div style="font-size:13px; opacity:0.7;" id="audioText">Activés</div></div>
+        <div style="width:50px; height:28px; background:#2d2d4a; border-radius:14px; position:relative; cursor:pointer;">
+          <div id="audioToggle" style="width:24px; height:24px; background:#25D366; border-radius:50%; position:absolute; top:2px; left:2px; transition:0.3s;"></div>
+        </div>
+      </div>
+      <div class="settings-item" onclick="showScreen('blockedList')">
+        <div class="settings-icon">🚫</div>
+        <div style="flex:1;"><div style="font-size:15px;">Contacts bloqués</div></div>
+      </div>
+      <div class="settings-item" onclick="logout()" style="color:#ff6b6b;">
+        <div class="settings-icon">🚪</div>
+        <div style="flex:1;"><div style="font-size:15px;">Se déconnecter</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="blockedList" class="screen">
+  <div class="header"><button class="backBtn" onclick="showScreen('mainScreen')">←</button><h4>Contacts bloqués</h4></div>
+  <div id="blockedContacts" class="contacts"></div>
+</div>
+
+<div id="profile" class="screen">
+  <div class="header"><button class="backBtn" onclick="showScreen('mainScreen')">←</button><h4>Profil</h4></div>
+  <div class="center" style="flex:1;">
+    <div class="profile-round" style="width:100px; height:100px; font-size:40px;" id="profileBig">U</div>
+    <h2 id="profileName">Utilisateur</h2>
+    <p id="profilePhone" style="opacity:0.7;"></p>
+    <input id="newPseudo" placeholder="Nouveau pseudo" style="margin-top:20px;">
+    <button onclick="updatePseudo()">Modifier le pseudo</button>
+  </div>
+</div>
+
+<!-- CHAT ROOM -->
+<div id="chatRoom" class="screen">
+  <div class="chat-header">
+    <button class="back-btn" onclick="closeChat()">←</button>
+    <div class="chat-info">
+      <div class="name" id="chatWithName">Contact</div>
+      <div class="status" id="chatWithStatus">en ligne</div>
+    </div>
+    <div class="chat-actions">
+      <button onclick="toggleBlock()" id="blockBtn" title="Bloquer">🚫</button>
+    </div>
+  </div>
+  <div id="messages" class="messages"></div>
+  <div id="blockedInfo" style="text-align:center;padding:10px;color:#ff6b6b;display:none;">Vous avez bloqué ce contact</div>
+
+  <div class="inputBar" id="inputBar">
+    <div class="inputWrapper">
+      <button onclick="openGallery()" title="Galerie">🖼️</button>
+      <button onclick="openCamera()" title="Caméra">📷</button>
+      <input id="msgInput" placeholder="Message" inputmode="text" onfocus="moveInputUp()" onblur="moveInputDown()" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMessage()">
+    </div>
+    <button id="audioRecBtn" class="audioBtn" onclick="toggleRecording()">
+      <span class="mic-icon">🎤</span>
+      <span class="stop-icon">⏹</span>
+    </button>
+    <span id="recordingTimer" class="recording-timer"></span>
+    <button id="sendBtn" class="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div id="cameraModal" class="camera-modal">
+  <video id="cameraVideo" autoplay playsinline></video>
+  <div class="camera-controls">
+    <button class="close-camera-btn" onclick="closeCamera()">✕</button>
+    <button class="capture-btn" onclick="capturePhoto()">📸</button>
+    <button class="switch-btn" onclick="switchCamera()">🔄</button>
+  </div>
+</div>
+
+<!-- ECRAN APPEL -->
+<div id="callScreen" class="call-screen">
+  <div class="call-avatar" id="callAvatar">👤</div>
+  <div class="call-name" id="callName">Appel en cours</div>
+  <div class="call-status" id="callStatus">Connexion...</div>
+  <div class="call-controls">
+    <button class="call-btn-circle mute" id="muteBtn" onclick="toggleMute()">🔇</button>
+    <button class="call-btn-circle end" onclick="endCall()">📞</button>
+    <button class="call-btn-circle speaker" id="speakerBtn" onclick="toggleSpeaker()">🔊</button>
+  </div>
+</div>
+
+<div id="overlay" class="overlay" onclick="closeModal()"></div>
+<div id="addModal" class="modal" style="display:none;">
+  <h3>Ajouter un ami</h3>
+  <input id="newFriendPhone" placeholder="Numéro sans espace" type="tel">
+  <button onclick="addFriend()">Ajouter</button>
+  <button style="background:#555" onclick="closeModal()">Annuler</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, setDoc, updateDoc, arrayUnion, getDoc, getDocs, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDWjKOQ5KgVSiMIsn-2WS7VrQiIEIJISgk",
+  authDomain: "univers-b5c66.firebaseapp.com",
+  projectId: "univers-b5c66",
+  storageBucket: "univers-b5c66.firebasestorage.app",
+  messagingSenderId: "307470364377",
+  appId: "1:307470364377:web:41a7f58ec50a50664d98c8",
+  measurementId: "G-0WER1SW9TY"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const CLOUD_NAME='du7r50ewt';
+const UPLOAD_PRESET='univers chat';
+
+let currentUser = null;
+let chatId = null;
+let currentChatFriend = null;
+let unsubscribeMessages = null;
+let unsubscribeStatus = null;
+let unsubscribeTyping = null;
+let userBlockedList = [];
+let allFriends = [];
+let isDark = localStorage.getItem('theme')!== 'light';
+let contactListVisible = false;
+
+// --- CAMERA ---
+let cameraStream = null;
+let facingMode = 'environment';
+
+window.openCamera = function() {
+  if (!chatId) {
+    alert("Ouvre d'abord un chat");
+    return;
+  }
+  if (userBlockedList.includes(currentChatFriend?.uid)) {
+    alert("Vous avez bloqué ce contact");
+    return;
+  }
+  document.getElementById('cameraModal').classList.add('active');
+  startCamera();
+}
+
+async function startCamera() {
+  try {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facingMode },
+      audio: false
+    });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+  } catch (err) {
+    alert("Impossible d'accéder à la caméra");
+    console.error(err);
+  }
+}
+
+window.closeCamera = function() {
+  document.getElementById('cameraModal').classList.remove('active');
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+}
+
+window.switchCamera = function() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  startCamera();
+}
+
+window.capturePhoto = async function() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('resource_type', 'image');
+    
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    
+    await addDoc(collection(db, "chats", chatId, "messages"), {
+      type: 'image',
+      url: data.secure_url,
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp(),
+      readBy: [currentUser.uid]
+    });
+    
+    playSendSound();
+    closeCamera();
+  }, 'image/jpeg', 0.9);
+}
+
+// --- WEBRTC ---
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let isCallActive = false;
+let isMuted = false;
+let isSpeakerOn = false;
+let callDocumentId = null;
+
+const servers = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' }
+  ]
+};
+
+// --- AUDIO ---
+let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
+
+function playNotification() {
+  if (!audioEnabled) return;
+  try {
+    const sound = document.getElementById('notificationSound');
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play().catch(() => {});
+  } catch(e) {}
+}
+
+function playSendSound() {
+  if (!audioEnabled) return;
+  try {
+    const sound = document.getElementById('sendSound');
+    sound.currentTime = 0;
+    sound.volume = 0.4;
+    sound.play().catch(() => {});
+  } catch(e) {}
+}
+
+function playRingtone() {
+  if (!audioEnabled) return;
+  try {
+    const sound = document.getElementById('ringtone');
+    sound.currentTime = 0;
+    sound.volume = 0.5;
+    sound.play().catch(() => {});
+  } catch(e) {}
+}
+
+function stopRingtone() {
+  try {
+    const sound = document.getElementById('ringtone');
+    sound.pause();
+    sound.currentTime = 0;
+  } catch(e) {}
+}
+
+window.toggleAudio = function() {
+  audioEnabled = !audioEnabled;
+  localStorage.setItem('audioEnabled', audioEnabled ? 'true' : 'false');
+  document.getElementById('audioIcon').textContent = audioEnabled ? '🔊' : '🔇';
+  document.getElementById('audioText').textContent = audioEnabled ? 'Activés' : 'Désactivés';
+  document.getElementById('audioToggle').style.left = audioEnabled ? '2px' : '24px';
+  document.getElementById('audioToggle').style.background = audioEnabled ? '#25D366' : '#666';
+}
+
+function applyAudioState() {
+  document.getElementById('audioIcon').textContent = audioEnabled ? '🔊' : '🔇';
+  document.getElementById('audioText').textContent = audioEnabled ? 'Activés' : 'Désactivés';
+  document.getElementById('audioToggle').style.left = audioEnabled ? '2px' : '24px';
+  document.getElementById('audioToggle').style.background = audioEnabled ? '#25D366' : '#666';
+}
+
+// --- ENREGISTREUR VOCAL ---
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isRecording = false;
+
+window.toggleRecording = async function() {
+  if (isRecording) { stopRecording(); } else { await startRecording(); }
+}
+
+async function startRecording() {
+  if (!chatId) return;
+  if (userBlockedList.includes(currentChatFriend?.uid)) {
+    alert("Vous avez bloqué ce contact");
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = (event) => { audioChunks.push(event.data); };
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      await uploadAudioCloudinary(audioBlob);
+      stream.getTracks().forEach(track => track.stop());
+    };
+    mediaRecorder.start();
+    isRecording = true;
+    recordingSeconds = 0;
+    document.getElementById('audioRecBtn').classList.add('recording');
+    document.getElementById('recordingTimer').textContent = '0:00';
+    document.getElementById('msgInput').disabled = true;
+    document.getElementById('msgInput').placeholder = '🔴 Enregistrement...';
+    recordingTimer = setInterval(() => {
+      recordingSeconds++;
+      const mins = Math.floor(recordingSeconds / 60);
+      const secs = recordingSeconds % 60;
+      document.getElementById('recordingTimer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
+  } catch (err) {
+    alert("Impossible d'accéder au micro.");
+    console.error(err);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+    isRecording = false;
+    clearInterval(recordingTimer);
+    document.getElementById('audioRecBtn').classList.remove('recording');
+    document.getElementById('recordingTimer').textContent = '';
+    document.getElementById('msgInput').disabled = false;
+    document.getElementById('msgInput').placeholder = 'Message';
+  }
+}
+
+// --- UPLOAD AUDIO VERS CLOUDINARY ---
+async function uploadAudioCloudinary(audioBlob) {
+  try {
+    const formData = new FormData();
+    formData.append('file', audioBlob);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('resource_type', 'video');
+    
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    const data = await res.json();
+    
+    await addDoc(collection(db, "chats", chatId, "messages"), {
+      type: 'audio',
+      url: data.secure_url,
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp(),
+      readBy: [currentUser.uid],
+      duration: recordingSeconds
+    });
+    
+    playSendSound();
+    
+  } catch (err) {
+    console.error("Erreur upload audio:", err);
+    alert("Erreur lors de l'envoi du message audio.");
+  }
+}
+
+// --- APPELS ---
+async function startCallWithUser(uid, name) {
+  if (userBlockedList.includes(uid)) {
+    alert("Vous avez bloqué ce contact");
+    return;
+  }
+  const statusRef = doc(db, "status", uid);
+  const statusSnap = await getDoc(statusRef);
+  if (!statusSnap.exists() || !statusSnap.data().online) {
+    alert("🔴 Ce contact n'est pas en ligne");
+    return;
+  }
+  try {
+    const callRef = collection(db, "calls");
+    const callDoc = await addDoc(callRef, {
+      type: 'private', callerId: currentUser.uid, calleeId: uid,
+      status: 'calling', startedAt: serverTimestamp(),
+      participants: [currentUser.uid, uid]
+    });
+    callDocumentId = callDoc.id;
+    showCallScreen(name, 'Appel en cours...');
+    playRingtone();
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    onSnapshot(doc(db, "calls", callDoc.id), async (snap) => {
+      if (!snap.exists()) { endCall(); return; }
+      const data = snap.data();
+      if (data.status === 'ended') { endCall(); alert("L'appel a été terminé"); }
+      else if (data.status === 'answered') {
+        stopRingtone();
+        document.getElementById('callStatus').textContent = 'En communication...';
+        await handleAnswer(data);
+      }
+    });
+  } catch (err) {
+    console.error("Erreur appel:", err);
+    alert("Impossible de démarrer l'appel");
+  }
+}
+
+async function handleAnswer(data) {
+  try {
+    peerConnection = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, localStream);
+    });
+    remoteStream = new MediaStream();
+    peerConnection.ontrack = (event) => {
+      event.streams[0].getTracks().forEach(track => {
+        remoteStream.addTrack(track);
+      });
+    };
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    await updateDoc(doc(db, "calls", callDocumentId), {
+      offer: { type: offer.type, sdp: offer.sdp }
+    });
+    onSnapshot(doc(db, "calls", callDocumentId), (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      if (data.answer && peerConnection) {
+        const answer = new RTCSessionDescription(data.answer);
+        peerConnection.setRemoteDescription(answer).catch(() => {});
+      }
+    });
+    isCallActive = true;
+  } catch (err) { console.error("Erreur handleAnswer:", err); }
+}
+
+async function answerCall(callId, callerId, callerName) {
+  try {
+    callDocumentId = callId;
+    showCallScreen(callerName, 'En communication...');
+    stopRingtone();
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    peerConnection = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, localStream);
+    });
+    remoteStream = new MediaStream();
+    peerConnection.ontrack = (event) => {
+      event.streams[0].getTracks().forEach(track => {
+        remoteStream.addTrack(track);
+      });
+    };
+    onSnapshot(doc(db, "calls", callId), async (snap) => {
+      if (!snap.exists()) { endCall(); return; }
+      const data = snap.data();
+      if (data.offer && !peerConnection.currentRemoteDescription) {
+        const offer = new RTCSessionDescription(data.offer);
+        await peerConnection.setRemoteDescription(offer);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        await updateDoc(doc(db, "calls", callId), {
+          answer: { type: answer.type, sdp: answer.sdp },
+          status: 'answered'
+        });
+      }
+      if (data.status === 'ended') { endCall(); }
+    });
+    isCallActive = true;
+  } catch (err) { console.error("Erreur answerCall:", err); }
+}
+
+window.endCall = function() {
+  if (callDocumentId) {
+    updateDoc(doc(db, "calls", callDocumentId), { status: 'ended' }).catch(() => {});
+  }
+  closeCallScreen();
+}
+
+function closeCallScreen() {
+  if (peerConnection) { peerConnection.close(); peerConnection = null; }
+  if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+  remoteStream = null;
+  isCallActive = false;
+  isMuted = false;
+  isSpeakerOn = false;
+  callDocumentId = null;
+  stopRingtone();
+  document.getElementById('callScreen').classList.remove('active');
+}
+
+function showCallScreen(name, status) {
+  const avatar = document.getElementById('callAvatar');
+  avatar.textContent = name.charAt(0).toUpperCase();
+  document.getElementById('callName').textContent = name;
+  document.getElementById('callStatus').textContent = status;
+  document.getElementById('callScreen').classList.add('active');
+}
+
+window.toggleMute = function() {
+  if (!localStream) return;
+  isMuted = !isMuted;
+  localStream.getAudioTracks().forEach(track => { track.enabled = !isMuted; });
+  document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+  document.getElementById('muteBtn').classList.toggle('muted', isMuted);
+}
+
+window.toggleSpeaker = function() {
+  isSpeakerOn = !isSpeakerOn;
+  document.getElementById('speakerBtn').textContent = isSpeakerOn ? '🔊' : '🔈';
+  document.getElementById('speakerBtn').classList.toggle('on', isSpeakerOn);
+}
+
+function listenForCalls() {
+  if (!currentUser) return;
+  const q = query(collection(db, "calls"),
+    where("calleeId", "==", currentUser.uid),
+    where("status", "==", "calling")
+  );
+  onSnapshot(q, (snap) => {
+    snap.docChanges().forEach(async (change) => {
+      if (change.type === 'added') {
+        const data = change.doc.data();
+        const callerId = data.callerId;
+        const userDoc = await getDoc(doc(db, "users", callerId));
+        if (userDoc.exists()) {
+          const callerName = userDoc.data().pseudo;
+          playRingtone();
+          if (confirm(`📞 Appel entrant de ${callerName}\nAccepter ?`)) {
+            await answerCall(change.doc.id, callerId, callerName);
+          } else {
+            await updateDoc(doc(db, "calls", change.doc.id), { status: 'ended' });
+            stopRingtone();
+          }
+        }
+      }
+    });
+  });
+}
+
+// --- UNIVERS+ ---
+window.toggleContactList = function() {
+  contactListVisible = !contactListVisible;
+  const container = document.getElementById('universplusContacts');
+  const btn = document.querySelector('.hero-phone-btn');
+  if (contactListVisible) {
+    container.classList.add('visible');
+    renderUniversPlusContacts();
+    if (btn) btn.textContent = '✕';
+  } else {
+    container.classList.remove('visible');
+    if (btn) btn.textContent = '📞';
+  }
+}
+
+async function renderUniversPlusContacts() {
+  const container = document.getElementById('universplusContactList');
+  if (allFriends.length === 0) {
+    container.innerHTML = '<div class="no-contacts">👤 Aucun contact disponible<br><span style="font-size:13px;opacity:0.5;">Ajoute des amis depuis l\'onglet Chats</span></div>';
+    return;
+  }
+  let html = '';
+  for (let f of allFriends) {
+    const statusRef = doc(db, "status", f.uid);
+    const statusSnap = await getDoc(statusRef);
+    const online = statusSnap.exists() && statusSnap.data().online;
+    html += `
+      <div class="contact-item" onclick="window.callFromUniversPlus('${f.uid}')">
+        <div class="contact-avatar">${f.pseudo[0].toUpperCase()}</div>
+        <div class="contact-info">
+          <div class="name">${f.pseudo}</div>
+          <div class="status">${online ? '🟢 En ligne' : '⚪ Hors ligne'}</div>
+        </div>
+        <button class="call-btn-small" onclick="event.stopPropagation(); window.callFromUniversPlus('${f.uid}')" title="Appeler">📞</button>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+window.callFromUniversPlus = function(uid) {
+  const user = allFriends.find(f => f.uid === uid);
+  if (user) {
+    startCallWithUser(uid, user.pseudo);
+  }
+}
+
+// --- FONCTIONS UTILES ---
+function cleanPhone(phone) { return phone.replace(/[\s+\-()]/g, ''); }
+function isOnline(lastSeen, online) {
+  if (!online) return false;
+  if (!lastSeen) return false;
+  const diff = Date.now() - lastSeen.toMillis();
+  return diff < 60000;
+}
+function timeAgo(timestamp) {
+  if (!timestamp) return '';
+  const date = timestamp.toDate();
+  const seconds = Math.floor((Date.now() - date) / 1000);
+  if (seconds < 60) return 'en ligne';
+  if (seconds < 3600) return `vu il y a ${Math.floor(seconds / 60)} min`;
+  if (seconds < 86400) return `vu il y a ${Math.floor(seconds / 3600)} h`;
+  return `vu le ${date.toLocaleDateString('fr-FR')}`;
+}
+
+// --- AUTH ---
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      await setDoc(userRef, { pseudo: user.displayName || "Utilisateur", phone: user.email.split('@')[0], uid: user.uid, friends: [], blocked: [] });
+    } else { userBlockedList = userSnap.data().blocked || []; }
+    updateProfileUI(user);
+    showScreen('splash');
+    setTimeout(() => {
+      showScreen('mainScreen');
+      loadFriends();
+      applyTheme();
+      applyAudioState();
+      listenForCalls();
+    }, 1500);
+    const userStatusRef = doc(db, "status", user.uid);
+    await setDoc(userStatusRef, { online: true, lastSeen: serverTimestamp() }, { merge: true });
+    setInterval(async () => {
+      await setDoc(userStatusRef, { lastSeen: serverTimestamp() }, { merge: true });
+    }, 10000);
+  } else { showScreen('welcome'); }
+});
+
+window.showScreen = function(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  document.getElementById('errorMsg').textContent = '';
+  if (screenId === 'blockedList') showBlockedList();
+}
+
+window.switchTab = function(tab) {
+  // Mettre à jour les boutons de navigation
+  document.querySelectorAll('.nav-actions button').forEach(b => b.classList.remove('active'));
+  
+  document.getElementById('chatsTab').style.display = 'none';
+  document.getElementById('universplusTab').style.display = 'none';
+  document.getElementById('settingsTab').style.display = 'none';
+  
+  if (tab === 'chats') {
+    document.getElementById('chatsTab').style.display = 'flex';
+    document.getElementById('navChats').classList.add('active');
+  } else if (tab === 'universplus') {
+    document.getElementById('universplusTab').style.display = 'flex';
+    document.getElementById('navUniversPlus').classList.add('active');
+    document.getElementById('universplusContacts').classList.remove('visible');
+    contactListVisible = false;
+    const btn = document.querySelector('.hero-phone-btn');
+    if (btn) btn.textContent = '📞';
+    renderUniversPlusContacts();
+  } else if (tab === 'settings') {
+    document.getElementById('settingsTab').style.display = 'flex';
+    document.getElementById('navSettings').classList.add('active');
+  }
+}
+
+function updateProfileUI(user) {
+  const initial = user.displayName ? user.displayName[0].toUpperCase() : 'U';
+  document.getElementById('profileBig').textContent = initial;
+  document.getElementById('profileName').textContent = user.displayName || 'Utilisateur';
+  document.getElementById('profilePhone').textContent = user.email.split('@')[0];
+}
+
+let isLogin = true;
+window.toggleAuth = function() {
+  isLogin = !isLogin;
+  document.getElementById('authTitle').textContent = isLogin ? 'Connexion' : 'Inscription';
+  document.getElementById('pseudo').style.display = isLogin ? 'none' : 'block';
+  document.querySelector('#auth button').textContent = isLogin ? 'Se connecter' : "S'inscrire";
+  document.querySelector('.link').textContent = isLogin ? 'Créer un compte' : 'Déjà un compte?';
+}
+
+window.handleAuth = async function() {
+  const phone = cleanPhone(document.getElementById('phone').value);
+  const password = document.getElementById('password').value;
+  const pseudo = document.getElementById('pseudo').value;
+  const errorDiv = document.getElementById('errorMsg');
+  errorDiv.textContent = '';
+  if (!phone || password.length < 6) {
+    errorDiv.textContent = "Numéro ou mot de passe invalide";
+    return;
+  }
+  const email = phone + "@universchat.com";
+  try {
+    if (isLogin) {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      if (!pseudo) { errorDiv.textContent = "Entre un pseudo"; return; }
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(res.user, { displayName: pseudo });
+      await setDoc(doc(db, "users", res.user.uid), {
+        pseudo, phone, uid: res.user.uid, friends: [], blocked: []
+      });
+    }
+  } catch (e) { errorDiv.textContent = e.message; }
+}
+
+window.logout = async function() {
+  if (isRecording) stopRecording();
+  if (isCallActive) endCall();
+  await signOut(auth);
+  showScreen('welcome');
+}
+
+window.updatePseudo = async function() {
+  const newPseudo = document.getElementById('newPseudo').value.trim();
+  if (!newPseudo) return;
+  await updateProfile(currentUser, { displayName: newPseudo });
+  await updateDoc(doc(db, "users", currentUser.uid), { pseudo: newPseudo });
+  updateProfileUI(currentUser);
+  alert("Pseudo modifié!");
+}
+
+window.openModal = function() {
+  document.getElementById('overlay').classList.add('active');
+  document.getElementById('addModal').style.display = 'flex';
+}
+window.closeModal = function() {
+  document.getElementById('overlay').classList.remove('active');
+  document.getElementById('addModal').style.display = 'none';
+}
+
+window.addFriend = async function() {
+  let phone = document.getElementById('newFriendPhone').value;
+  phone = cleanPhone(phone);
+  const q = query(collection(db, "users"), where("phone", "==", phone));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    const friend = snap.docs[0].data();
+    await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayUnion(friend) });
+    loadFriends();
+    closeModal();
+    document.getElementById('newFriendPhone').value = "";
+    alert(friend.pseudo + " ajouté!");
+  } else { alert("Utilisateur introuvable."); }
+}
+
+async function loadFriends() {
+  const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+  const friends = userDoc.data().friends || [];
+  userBlockedList = userDoc.data().blocked || [];
+  allFriends = friends.filter(f => !userBlockedList.includes(f.uid));
+  renderContacts(allFriends);
+}
+
+function renderContacts(friendsList) {
+  const container = document.getElementById('contacts');
+  if (friendsList.length === 0) {
+    container.innerHTML = '<p style="text-align:center; margin-top:20px; opacity:0.6;">Aucun contact trouvé.</p>';
+    return;
+  }
+  container.innerHTML = friendsList.map(f => `
+    <div class="contact" onclick="openChat('${f.uid}', '${f.pseudo.replace(/'/g, "\\'")}')">
+      <div class="avatar">
+        ${f.pseudo[0].toUpperCase()}
+        <span id="status-${f.uid}" class="status-dot"></span>
+      </div>
+      <div style="flex:1;">
+        <div>${f.pseudo}</div>
+        <div style="font-size:12px;opacity:0.6">${f.phone}</div>
+        <div id="lastseen-${f.uid}" style="font-size:12px; opacity:0.6;">chargement...</div>
+      </div>
+    </div>
+  `).join('');
+
+  friendsList.forEach(f => {
+    const statusRef = doc(db, "status", f.uid);
+    onSnapshot(statusRef, (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const statusDot = document.getElementById(`status-${f.uid}`);
+      const lastSeen = document.getElementById(`lastseen-${f.uid}`);
+      if (statusDot && lastSeen) {
+        if (isOnline(data.lastSeen, data.online)) {
+          statusDot.classList.add('online');
+          lastSeen.textContent = 'en ligne';
+        } else {
+          statusDot.classList.remove('online');
+          lastSeen.textContent = timeAgo(data.lastSeen);
+        }
+      }
+    });
+  });
+}
+
+window.searchContacts = function() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = allFriends.filter(f =>
+    f.pseudo.toLowerCase().includes(query) ||
+    f.phone.includes(query)
+  );
+  renderContacts(filtered);
+}
+
+window.openChat = async function(friendUid, friendPseudo) {
+  if (isRecording) stopRecording();
+  if (isCallActive) endCall();
+  chatId = [currentUser.uid, friendUid].sort().join("_");
+  currentChatFriend = { uid: friendUid, pseudo: friendPseudo };
+  document.getElementById('chatWithName').textContent = friendPseudo;
+  showScreen('chatRoom');
+
+  const isBlocked = userBlockedList.includes(friendUid);
+  document.getElementById('blockBtn').textContent = isBlocked ? '✅' : '🚫';
+  document.getElementById('inputBar').style.display = isBlocked ? 'none' : 'flex';
+  document.getElementById('blockedInfo').style.display = isBlocked ? 'block' : 'none';
+
+  const statusRef = doc(db, "status", friendUid);
+  if (unsubscribeStatus) unsubscribeStatus();
+  unsubscribeStatus = onSnapshot(statusRef, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const statusEl = document.getElementById('chatWithStatus');
+    if (!statusEl.classList.contains('typing')) {
+      statusEl.textContent = isOnline(data.lastSeen, data.online) ? 'en ligne' : timeAgo(data.lastSeen);
+    }
+  });
+
+  const typingRef = doc(db, "typing", chatId);
+  if (unsubscribeTyping) unsubscribeTyping();
+  unsubscribeTyping = onSnapshot(typingRef, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const typingEl = document.getElementById('chatWithStatus');
+    let otherUserId = Object.keys(data).find(uid => uid !== currentUser.uid);
+    if (otherUserId && data[otherUserId] && Date.now() - data[otherUserId] < 4000) {
+      typingEl.textContent = 'en train d\'écrire...';
+      typingEl.classList.add('typing');
+    } else {
+      typingEl.classList.remove('typing');
+    }
+  });
+
+  const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt"));
+  if (unsubscribeMessages) unsubscribeMessages();
+  unsubscribeMessages = onSnapshot(q, async (snap) => {
+    const container = document.getElementById('messages');
+    const unreadMsgs = snap.docs.filter(doc => {
+      const msg = doc.data();
+      return msg.senderId !== currentUser.uid && !msg.readBy?.includes(currentUser.uid);
+    });
+    if (unreadMsgs.length > 0 && currentChatFriend && unreadMsgs.some(d => d.data().senderId === currentChatFriend.uid)) {
+      playNotification();
+    }
+    for (let docSnap of unreadMsgs) {
+      await updateDoc(docSnap.ref, { readBy: arrayUnion(currentUser.uid) });
+    }
+    container.innerHTML = snap.docs.map(doc => {
+      const msg = doc.data();
+      const isMe = msg.senderId === currentUser.uid;
+      const time = msg.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
+      let ticks = '';
+      if (isMe) {
+        const readByOthers = msg.readBy?.filter(id => id !== currentUser.uid).length > 0;
+        ticks = `<span style="color:${readByOthers ? '#53bdeb' : '#a0a0c0'}; font-size:16px; margin-left:4px;">✓</span>`;
+      }
+      let mediaHtml = '';
+      if (msg.type === 'image') { mediaHtml = `<img src="${msg.url}">`; }
+      if (msg.type === 'video') { mediaHtml = `<video controls src="${msg.url}"></video>`; }
+      if (msg.type === 'audio') {
+        const duration = msg.duration || 0;
+        const mins = Math.floor(duration / 60);
+        const secs = duration % 60;
+        const durationText = duration > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : '';
+        mediaHtml = `<audio controls src="${msg.url}" preload="metadata"></audio>
+                    <div style="font-size:11px;opacity:0.6;margin-top:2px;">🎤 ${durationText}</div>`;
+      }
+      return `<div class="msg ${isMe ? 'me' : 'them'}"><div class="bubble">${msg.text ? `<div>${msg.text}</div>` : ''}${mediaHtml}<span class="time">${time}${ticks}</span></div></div>`;
+    }).join('');
+    container.scrollTop = container.scrollHeight;
+  });
+}
+
+window.closeChat = function() {
+  if (isRecording) stopRecording();
+  if (chatId) setDoc(doc(db, "typing", chatId), { [currentUser.uid]: 0 }, { merge: true });
+  if (unsubscribeMessages) unsubscribeMessages();
+  if (unsubscribeStatus) unsubscribeStatus();
+  if (unsubscribeTyping) unsubscribeTyping();
+  showScreen('mainScreen');
+}
+
+window.handleTyping = function() {
+  if (!chatId) return;
+  const typingRef = doc(db, "typing", chatId);
+  setDoc(typingRef, { [currentUser.uid]: Date.now() }, { merge: true });
+  setTimeout(() => {
+    setDoc(doc(db, "typing", chatId), { [currentUser.uid]: 0 }, { merge: true });
+  }, 3000);
+}
+
+window.sendMessage = async function() {
+  const text = document.getElementById('msgInput').value.trim();
+  if (!text || !chatId) return;
+  if (userBlockedList.includes(currentChatFriend.uid)) { alert("Vous avez bloqué ce contact"); return; }
+  document.getElementById('msgInput').value = "";
+  playSendSound();
+  setDoc(doc(db, "typing", chatId), { [currentUser.uid]: 0 }, { merge: true });
+  await addDoc(collection(db, "chats", chatId, "messages"), {
+    type: 'text', text, senderId: currentUser.uid,
+    createdAt: serverTimestamp(), readBy: [currentUser.uid]
+  });
+}
+
+window.openGallery = async function() {
+  if (isRecording) stopRecording();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,video/*';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    const resourceType = file.type.startsWith('video') ? 'video' : 'image';
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, { method: 'POST', body: formData });
+    const data = await res.json();
+    await addDoc(collection(db, "chats", chatId, "messages"), {
+      type: resourceType, url: data.secure_url, senderId: currentUser.uid,
+      createdAt: serverTimestamp(), readBy: [currentUser.uid]
+    });
+  };
+  input.click();
+}
+
+window.moveInputUp = function() {
+  document.getElementById('inputBar').style.transform = 'translateY(-250px)';
+}
+window.moveInputDown = function() {
+  document.getElementById('inputBar').style.transform = 'translateY(0)';
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const inputBar = document.getElementById('inputBar');
+    if (window.visualViewport.height < window.innerHeight) {
+      inputBar.style.transform = `translateY(-${window.innerHeight - window.visualViewport.height}px)`;
+    } else {
+      inputBar.style.transform = 'translateY(0)';
+    }
+  });
+}
+
+window.toggleBlock = async function() {
+  if (!currentChatFriend) return;
+  if (isRecording) stopRecording();
+  const userRef = doc(db, "users", currentUser.uid);
+  const isBlocked = userBlockedList.includes(currentChatFriend.uid);
+  if (isBlocked) {
+    await updateDoc(userRef, { blocked: arrayRemove(currentChatFriend.uid) });
+    userBlockedList = userBlockedList.filter(id => id !== currentChatFriend.uid);
+  } else {
+    await updateDoc(userRef, { blocked: arrayUnion(currentChatFriend.uid) });
+    userBlockedList.push(currentChatFriend.uid);
+  }
+  openChat(currentChatFriend.uid, currentChatFriend.pseudo);
+  loadFriends();
+}
+
+window.showBlockedList = async function() {
+  if (isRecording) stopRecording();
+  const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+  userBlockedList = userDoc.data().blocked || [];
+  const container = document.getElementById('blockedContacts');
+  if (userBlockedList.length === 0) {
+    container.innerHTML = '<p style="text-align:center;margin-top:40px;opacity:0.6">Aucun contact bloqué</p>';
+    return;
+  }
+  let html = '';
+  for (let uid of userBlockedList) {
+    const u = await getDoc(doc(db, "users", uid));
+    if (u.exists()) {
+      const data = u.data();
+      html += `<div class="blocked-item"><div>${data.pseudo}</div><button onclick="toggleBlockFromList('${uid}')">Débloquer</button></div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
+window.toggleBlockFromList = async function(uid) {
+  const userRef = doc(db, "users", currentUser.uid);
+  await updateDoc(userRef, { blocked: arrayRemove(uid) });
+  userBlockedList = userBlockedList.filter(id => id !== uid);
+  showBlockedList();
+  loadFriends();
+}
+
+function applyTheme() {
+  if (isDark) {
+    document.body.classList.remove('light');
+    document.getElementById('themeIcon').textContent = '🌙';
+    document.getElementById('themeText').textContent = 'Sombre';
+    document.getElementById('themeToggle').style.left = '2px';
+  } else {
+    document.body.classList.add('light');
+    document.getElementById('themeIcon').textContent = '☀️';
+    document.getElementById('themeText').textContent = 'Clair';
+    document.getElementById('themeToggle').style.left = '24px';
+  }
+}
+window.toggleTheme = function() {
+  isDark = !isDark;
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  applyTheme();
+}
+</script>
+</body>
+</html>
